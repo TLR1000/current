@@ -13,10 +13,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.diamonds import calculate_diamond_current, import_diamonds, moon_spring_neap_factor
-from app.rws_tides import fetch_nearest_high_water
+from app.calculation_cache import (
+    calculation_cache_status,
+    five_minute_bucket,
+    initialise_calculation_cache,
+    load_calculation,
+    store_calculation,
+)
+from app.rws_tides import fetch_nearest_high_water, initialise_rws_cache
 
 
-API_VERSION = "1.0.0"
+API_VERSION = "1.1.0"
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = Path(os.getenv("CURRENT_DB", BASE_DIR / "current.sqlite3"))
 DIAMONDS_PATH = Path(os.getenv("CURRENT_DIAMONDS_FILE", BASE_DIR / "data" / "diamonds.txt"))
@@ -27,7 +34,10 @@ def initialise_data() -> dict:
     if not DIAMONDS_PATH.exists():
         raise RuntimeError(f"Diamond source file not found: {DIAMONDS_PATH}")
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    return import_diamonds(DB_PATH, DIAMONDS_PATH)
+    result = import_diamonds(DB_PATH, DIAMONDS_PATH)
+    initialise_calculation_cache(DB_PATH)
+    initialise_rws_cache(DB_PATH)
+    return result
 
 
 @asynccontextmanager
@@ -182,7 +192,12 @@ def root(request: Request):
 
 @app.get("/health")
 def health(request: Request):
-    return envelope(request, status="ok" if database_ready() else "degraded", service="current-api")
+    return envelope(
+        request,
+        status="ok" if database_ready() else "degraded",
+        service="current-api",
+        calculationCache=calculation_cache_status(DB_PATH),
+    )
 
 
 @app.get("/ready")
@@ -246,18 +261,56 @@ def get_current(
             f"No current data within {MAX_DISTANCE_KM:g} km; nearest diamond is "
             f"{point['distance_km']:.3f} km away",
         )
-    try:
-        high_water = fetch_nearest_high_water(point["reference_port_code"], at)
-    except (RuntimeError, ValueError) as exc:
-        raise HTTPException(503, str(exc)) from exc
-    hours_from_high_water = (at - high_water["time"]).total_seconds() / 3600
-    spring_neap_factor = moon_spring_neap_factor(at)
-    try:
-        current = calculate_diamond_current(
-            load_rates(point["point_id"]), hours_from_high_water, spring_neap_factor
+    bucket = five_minute_bucket(at)
+    cached = load_calculation(
+        DB_PATH,
+        source=source,
+        point_id=point["point_id"],
+        atlas_sha256=point["source_sha256"],
+        bucket=bucket,
+    )
+    cache_status = "hit" if cached else "miss"
+    if cached:
+        calculation = cached["payload"]
+        calculated_at = cached["calculated_at"]
+    else:
+        try:
+            high_water = fetch_nearest_high_water(
+                point["reference_port_code"], bucket, DB_PATH
+            )
+        except (RuntimeError, ValueError) as exc:
+            raise HTTPException(503, str(exc)) from exc
+        hours_from_high_water = (bucket - high_water["time"]).total_seconds() / 3600
+        spring_neap_factor = moon_spring_neap_factor(bucket)
+        try:
+            current = calculate_diamond_current(
+                load_rates(point["point_id"]), hours_from_high_water, spring_neap_factor
+            )
+        except ValueError as exc:
+            raise HTTPException(503, str(exc)) from exc
+        calculation = {
+            "current": current,
+            "referenceHighWater": high_water["time"].isoformat(),
+            "hoursFromHighWater": round(hours_from_high_water, 3),
+            "springNeapFactor": round(spring_neap_factor, 4),
+            "highWater": {
+                "provider": high_water["source"],
+                "dataset": high_water["dataset"],
+                "station": high_water["station_code"],
+                "cache": high_water.get("cache", "none"),
+            },
+        }
+        calculated_at = store_calculation(
+            DB_PATH,
+            source=source,
+            point_id=point["point_id"],
+            atlas_sha256=point["source_sha256"],
+            bucket=bucket,
+            payload=calculation,
         )
-    except ValueError as exc:
-        raise HTTPException(503, str(exc)) from exc
+    current = calculation["current"]
+    calculated = datetime.fromisoformat(calculated_at.replace("Z", "+00:00"))
+    cache_age_seconds = max(0, int((datetime.now(timezone.utc) - calculated).total_seconds()))
     return envelope(
         request,
         source=source,
@@ -272,9 +325,10 @@ def get_current(
         context={
             "area": point["area_code"],
             "referencePort": point["reference_port"],
-            "referenceHighWater": high_water["time"].isoformat(),
-            "hoursFromHighWater": round(hours_from_high_water, 3),
-            "springNeapFactor": round(spring_neap_factor, 4),
+            "calculationTime": bucket.isoformat(),
+            "referenceHighWater": calculation["referenceHighWater"],
+            "hoursFromHighWater": calculation["hoursFromHighWater"],
+            "springNeapFactor": calculation["springNeapFactor"],
             "diamond": {
                 "number": point["diamond_number"],
                 "latitude": point["lat"], "longitude": point["lon"],
@@ -284,16 +338,18 @@ def get_current(
         quality={
             "method": "nearest-point temporal vector interpolation",
             "spatialInterpolation": False,
+            "temporalResolutionMinutes": 5,
+            "maximumTimeOffsetSeconds": 150,
             "estimated": True,
         },
         provenance={
             "atlas": "tidal-diamonds",
-            "highWater": {
-                "provider": high_water["source"],
-                "dataset": high_water["dataset"],
-                "station": high_water["station_code"],
-                "cache": high_water.get("cache", "none"),
-            },
+            "highWater": calculation["highWater"],
             "springNeap": "local astronomical calculation",
+            "calculationCache": {
+                "status": cache_status,
+                "calculatedAt": calculated_at,
+                "ageSeconds": cache_age_seconds,
+            },
         },
     )

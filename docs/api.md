@@ -10,7 +10,7 @@ Alle succesvolle en foutresponses bevatten:
 
 ```json
 {
-  "apiVersion": "1.0.0",
+  "apiVersion": "1.1.0",
   "requestId": "d8ccf25b-..."
 }
 ```
@@ -34,7 +34,7 @@ Voorbeeldresponse:
 
 ```json
 {
-  "apiVersion": "1.0.0",
+  "apiVersion": "1.1.0",
   "requestId": "d8ccf25b-...",
   "source": "diamonds",
   "query": {
@@ -51,6 +51,7 @@ Voorbeeldresponse:
   },
   "context": {
     "area": "voordelta",
+    "calculationTime": "2026-08-25T12:00:00+00:00",
     "referencePort": "Hoek van Holland",
     "referenceHighWater": "2026-08-25T12:38:00+00:00",
     "hoursFromHighWater": -0.633,
@@ -65,6 +66,8 @@ Voorbeeldresponse:
   "quality": {
     "method": "nearest-point temporal vector interpolation",
     "spatialInterpolation": false,
+    "temporalResolutionMinutes": 5,
+    "maximumTimeOffsetSeconds": 150,
     "estimated": true
   },
   "provenance": {
@@ -75,7 +78,12 @@ Voorbeeldresponse:
       "station": "hoekvanholland",
       "cache": "hit"
     },
-    "springNeap": "local astronomical calculation"
+    "springNeap": "local astronomical calculation",
+    "calculationCache": {
+      "status": "hit",
+      "calculatedAt": "2026-08-20T08:13:22+00:00",
+      "ageSeconds": 468398
+    }
   }
 }
 ```
@@ -84,13 +92,19 @@ Richting is de richting waarheen het water stroomt, in graden waar vanaf het
 noorden met de klok mee. `eastwardMetersPerSecond` is positief naar het oosten;
 `northwardMetersPerSecond` is positief naar het noorden.
 
+De service rondt `query.time` af naar het dichtstbijzijnde vijfminutenvak in
+`context.calculationTime`. De maximale afwijking is 150 seconden. Dit sluit aan
+op actuele vijfminutenpolling en zorgt dat route- en tijdreeksclients dezelfde
+operationele berekeningen hergebruiken. `calculationCache.status` is `miss` bij
+de eerste berekening en `hit` bij hergebruik, ook na een containerherstart.
+
 ## Fouten
 
 Fouten hebben een stabiele structuur:
 
 ```json
 {
-  "apiVersion": "1.0.0",
+  "apiVersion": "1.1.0",
   "requestId": "...",
   "error": {
     "code": "not_found",

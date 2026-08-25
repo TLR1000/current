@@ -22,7 +22,8 @@ curl -fsS http://localhost:8002/ready
 ```
 
 De service heeft geen secrets of `.env` nodig. Het named volume
-`current-data` bevat alleen de gegenereerde SQLite-runtimecache/dataset.
+`current-data` bevat de gegenereerde dataset, RWS-HW-cache en operationele
+vijfminutenresultaten. Verwijder dit volume niet bij een gewone deployment.
 
 ## Nieuwe versie deployen
 
@@ -52,6 +53,7 @@ cd ~/current
 docker compose ps
 curl -fsS http://localhost:8002/
 curl -fsS http://localhost:8002/ready
+curl -fsS http://localhost:8002/health
 curl -fsS 'http://localhost:8002/v1/sources'
 curl -fsS 'http://localhost:8002/v1/coverage?source=diamonds'
 curl -fsS 'http://localhost:8002/v1/current?source=diamonds&lat=51.9&lon=3.8&time=2026-08-25T12:00:00Z'
@@ -83,6 +85,10 @@ ss -ltnp | grep ':8002'
 
 Accessrequests worden bewust niet gelogd. Alleen start-, fout- en crashoutput
 kan in de begrensde Dockerlogs staan.
+
+`/health` toont onder `calculationCache` het aantal operationele rijen en het
+eerste/laatste tijdvak. Een groeiend aantal is normaal wanneer nieuwe race- of
+planningsdata wordt bevraagd.
 
 ## Herstart en herstel
 

@@ -1,11 +1,19 @@
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi.testclient import TestClient
+import pytest
 
 import app.main as main
 
 
-def high_water_stub(reference_port, at):
+@pytest.fixture(autouse=True)
+def isolated_database(tmp_path, monkeypatch):
+    monkeypatch.setattr(main, "DB_PATH", tmp_path / "current.sqlite3")
+    monkeypatch.setattr(main, "DIAMONDS_PATH", Path(__file__).parent.parent / "data" / "diamonds.txt")
+
+
+def high_water_stub(reference_port, at, database=None):
     return {
         "time": datetime(2026, 8, 25, 12, 0, tzinfo=timezone.utc),
         "station_code": "hoekvanholland",
@@ -55,8 +63,11 @@ def test_current_response_contract(monkeypatch):
     assert payload["context"]["hoursFromHighWater"] == 0.5
     assert payload["quality"]["estimated"] is True
     assert payload["provenance"]["highWater"]["cache"] == "hit"
-    assert payload["apiVersion"] == "1.0.0"
+    assert payload["apiVersion"] == "1.1.0"
     assert payload["requestId"]
+    assert payload["context"]["calculationTime"] == "2026-08-25T12:30:00+00:00"
+    assert payload["quality"]["temporalResolutionMinutes"] == 5
+    assert payload["provenance"]["calculationCache"]["status"] == "miss"
 
 
 def test_source_is_explicit_and_errors_are_stable():
@@ -78,3 +89,24 @@ def test_outside_coverage_is_404(monkeypatch):
         })
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "not_found"
+
+
+def test_nearby_queries_share_operational_calculation(monkeypatch):
+    calls = []
+
+    def counted_high_water(reference_port, at, database=None):
+        calls.append((reference_port, at))
+        return high_water_stub(reference_port, at, database)
+
+    monkeypatch.setattr(main, "fetch_nearest_high_water", counted_high_water)
+    common = {"source": "diamonds", "lat": 51.9858, "lon": 3.896}
+    with TestClient(main.app) as client:
+        first = client.get("/v1/current", params={**common, "time": "2026-08-25T12:29:00Z"})
+        second = client.get("/v1/current", params={**common, "time": "2026-08-25T12:31:00Z"})
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert first.json()["context"]["calculationTime"] == "2026-08-25T12:30:00+00:00"
+    assert second.json()["context"]["calculationTime"] == "2026-08-25T12:30:00+00:00"
+    assert first.json()["provenance"]["calculationCache"]["status"] == "miss"
+    assert second.json()["provenance"]["calculationCache"]["status"] == "hit"
+    assert len(calls) == 1

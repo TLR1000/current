@@ -58,3 +58,15 @@ python -m pytest -q
 
 De service retourneert wel een `requestId`, maar bewaart die niet. Een client
 mag zelf `X-Request-ID` meesturen voor correlatie binnen de eigen app.
+
+## Caching
+
+De service heeft twee persistente cachelagen in het Docker-volume:
+
+- officiële RWS-HW-extremen per station en kalenderdag;
+- operationele stroomresultaten per diamant en vijfminutenvak.
+
+Verschillende apps en coördinaten die dezelfde diamant en hetzelfde tijdvak
+gebruiken delen daarmee één berekening. De response vermeldt het exacte
+`calculationTime` en de hit/miss-status. Het gevraagde tijdstip wordt naar het
+dichtstbijzijnde vijfminutenvak afgerond, met maximaal 150 seconden verschil.

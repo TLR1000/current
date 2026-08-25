@@ -20,6 +20,20 @@ Iedere geldige diamant moet exact dertien unieke uurregels hebben. Een nieuwe
 bronhash vormt een nieuwe herleidbare dataset; de nieuwste geïmporteerde dataset
 is actief.
 
-HW-tijden worden niet blijvend opgeslagen. De huidige procescache is tijdelijk
-en wordt bij een containerherstart geleegd. Zie de roadmap voor persistente en
-gedeelde caching.
+## Operationele gegevens
+
+`rws_high_water_cache` bewaart gevalideerde HW-extremen per RWS-station en
+UTC-kalenderdag. Naast de tijden wordt `fetched_at` opgeslagen voor freshness en
+`stale-if-error`.
+
+`current_calculations` bewaart het berekende resultaat per:
+
+- provider;
+- intern diamantpunt;
+- SHA-256 van de atlasversie;
+- UTC-vijfminutenvak.
+
+De atlas-hash voorkomt dat resultaten van een oude dataset na een datawijziging
+worden hergebruikt. De cache is on-demand: er worden alleen rijen aangemaakt
+voor daadwerkelijk opgevraagde race- of actuele tijdvakken. Bij 12 diamanten
+zijn maximaal 3.456 rijen per volledig bevraagde dag nodig.
