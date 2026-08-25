@@ -25,6 +25,14 @@ de aangevraagde coördinaten zijn bewust geen onderdeel. SailSense-polls,
 TrackSense-planning en FleetSense-tijdreeksen delen daardoor berekeningen zodra
 zij bij dezelfde diamant uitkomen.
 
+Voor ruimtelijke afleiding worden maximaal vier punten binnen 15 km geselecteerd.
+Hun gewichten zijn omgekeerd evenredig met het kwadraat van de afstand. Ieder
+punt wordt eerst zelfstandig voor zijn eigen referentiehaven en HW berekend of
+uit de operationele cache gelezen. Daarna worden uitsluitend de `u/v`-vectoren
+gewogen gecombineerd. Richting en snelheid worden pas uit de samengestelde
+vector afgeleid. Binnen één meter van een diamant wint het bronpunt volledig,
+zodat een bekende atlaswaarde niet wordt gladgestreken.
+
 Bij een cachemiss wordt het relevante officiële HW van de referentiehaven
 opgehaald. De RWS-extremen worden per station en kalenderdag persistent in
 SQLite opgeslagen en dertig dagen vers gehouden. Bij een tijdelijke storing

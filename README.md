@@ -70,3 +70,9 @@ Verschillende apps en coördinaten die dezelfde diamant en hetzelfde tijdvak
 gebruiken delen daarmee één berekening. De response vermeldt het exacte
 `calculationTime` en de hit/miss-status. Het gevraagde tijdstip wordt naar het
 dichtstbijzijnde vijfminutenvak afgerond, met maximaal 150 seconden verschil.
+
+Voor een locatie tussen atlaspunten combineert de API maximaal vier geschikte
+diamanten met inverse-distance-squared gewichten. De interpolatie gebeurt op de
+oost-/noordvectoren. Exact op een diamant blijft de oorspronkelijke atlaswaarde
+behouden. Alle gebruikte punten, afstanden, gewichten en referentiehavens staan
+in `context.interpolationPoints`.

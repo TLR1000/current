@@ -5,6 +5,8 @@
 - Persistente RWS-cache per station en datum, inclusief `stale-if-error`.
 - Persistente operationele resultaatcache per diamant en vijfminutenvak.
 - Cacheomvang en tijdsbereik op `/health`, zonder request- of persoonslogging.
+- Ruimtelijke IDW²-vectorinterpolatie over maximaal vier geschikte atlaspunten,
+  met volledige punt-, afstands-, gewichts- en bronprovenance.
 
 ## Eerstvolgend
 
@@ -16,8 +18,6 @@
 
 ## Daarna
 
-- Ruimtelijke vectorinterpolatie tussen meerdere geschikte atlaspunten; de
-  huidige methode kiest bewust alleen het dichtstbijzijnde punt.
 - Meer vaargebieden, diamanten en referentiehavens via hetzelfde importschema.
 - Batchendpoint voor FleetSense-routepunten en tijdreeksen om honderden losse
   HTTP-calls te voorkomen en cachewarming in één request mogelijk te maken.

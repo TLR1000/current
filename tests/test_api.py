@@ -63,11 +63,14 @@ def test_current_response_contract(monkeypatch):
     assert payload["context"]["hoursFromHighWater"] == 0.5
     assert payload["quality"]["estimated"] is True
     assert payload["provenance"]["highWater"]["cache"] == "hit"
-    assert payload["apiVersion"] == "1.1.0"
+    assert payload["apiVersion"] == "1.2.0"
     assert payload["requestId"]
     assert payload["context"]["calculationTime"] == "2026-08-25T12:30:00+00:00"
     assert payload["quality"]["temporalResolutionMinutes"] == 5
     assert payload["provenance"]["calculationCache"]["status"] == "miss"
+    assert payload["quality"]["spatialInterpolation"] is False
+    assert payload["quality"]["spatialPointCount"] == 1
+    assert payload["context"]["interpolationPoints"][0]["weight"] == 1.0
 
 
 def test_source_is_explicit_and_errors_are_stable():
@@ -109,4 +112,49 @@ def test_nearby_queries_share_operational_calculation(monkeypatch):
     assert second.json()["context"]["calculationTime"] == "2026-08-25T12:30:00+00:00"
     assert first.json()["provenance"]["calculationCache"]["status"] == "miss"
     assert second.json()["provenance"]["calculationCache"]["status"] == "hit"
-    assert len(calls) == 1
+    assert len(calls) == 4
+
+
+def test_between_diamonds_uses_weighted_spatial_vectors(monkeypatch):
+    monkeypatch.setattr(main, "fetch_nearest_high_water", high_water_stub)
+    with TestClient(main.app) as client:
+        response = client.get("/v1/current", params={
+            "source": "diamonds",
+            "lat": 51.826,
+            "lon": 3.6037,
+            "time": "2026-08-25T12:30:00Z",
+        })
+    assert response.status_code == 200
+    payload = response.json()
+    points = payload["context"]["interpolationPoints"]
+    assert payload["quality"]["spatialInterpolation"] is True
+    assert payload["quality"]["spatialPointCount"] == 4
+    assert payload["quality"]["spatialDistancePower"] == 2
+    assert len(points) == 4
+    assert sum(point["weight"] for point in points) == pytest.approx(1, abs=0.00001)
+    assert {7, 8}.issubset({point["number"] for point in points})
+    assert all(point["distanceKm"] <= main.MAX_DISTANCE_KM for point in points)
+
+
+def test_spatial_points_keep_their_own_reference_port(monkeypatch):
+    calls = []
+
+    def port_aware_high_water(reference_port, at, database=None):
+        calls.append(reference_port)
+        result = high_water_stub(reference_port, at, database)
+        if reference_port == "vlissingen":
+            result = {**result, "station_code": "vlissingen"}
+        return result
+
+    monkeypatch.setattr(main, "fetch_nearest_high_water", port_aware_high_water)
+    with TestClient(main.app) as client:
+        response = client.get("/v1/current", params={
+            "source": "diamonds", "lat": 51.85, "lon": 3.84,
+            "time": "2026-08-25T12:30:00Z",
+        })
+    assert response.status_code == 200
+    points = response.json()["context"]["interpolationPoints"]
+    assert {"Hoek van Holland", "Vlissingen"}.issubset(
+        {point["referencePort"] for point in points}
+    )
+    assert {"hoek_van_holland", "vlissingen"}.issubset(set(calls))

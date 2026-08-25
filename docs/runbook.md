@@ -25,6 +25,11 @@ De service heeft geen secrets of `.env` nodig. Het named volume
 `current-data` bevat de gegenereerde dataset, RWS-HW-cache en operationele
 vijfminutenresultaten. Verwijder dit volume niet bij een gewone deployment.
 
+De standaard ruimtelijke configuratie gebruikt maximaal vier punten en IDW².
+Deze is in Compose zichtbaar als `CURRENT_SPATIAL_POINT_COUNT=4` en
+`CURRENT_SPATIAL_POWER=2`. Wijzig deze waarden alleen samen met validatietests;
+een wijziging verandert alle ruimtelijk afgeleide resultaten.
+
 ## Nieuwe versie deployen
 
 Lokaal:

@@ -10,7 +10,7 @@ Alle succesvolle en foutresponses bevatten:
 
 ```json
 {
-  "apiVersion": "1.1.0",
+  "apiVersion": "1.2.0",
   "requestId": "d8ccf25b-..."
 }
 ```
@@ -34,7 +34,7 @@ Voorbeeldresponse:
 
 ```json
 {
-  "apiVersion": "1.1.0",
+  "apiVersion": "1.2.0",
   "requestId": "d8ccf25b-...",
   "source": "diamonds",
   "query": {
@@ -61,11 +61,28 @@ Voorbeeldresponse:
       "latitude": 51.8741667,
       "longitude": 3.8998333,
       "distanceKm": 7.41
-    }
+    },
+    "interpolationPoints": [
+      {
+        "number": 3,
+        "latitude": 51.8741667,
+        "longitude": 3.8998333,
+        "distanceKm": 7.41,
+        "weight": 0.54,
+        "referencePort": "Hoek van Holland",
+        "referenceHighWater": "2026-08-25T12:38:00+00:00",
+        "hoursFromHighWater": -0.633,
+        "springNeapFactor": 0.72,
+        "calculationCache": {"status": "hit"},
+        "highWater": {"station": "hoekvanholland", "cache": "persistent-hit"}
+      }
+    ]
   },
   "quality": {
-    "method": "nearest-point temporal vector interpolation",
-    "spatialInterpolation": false,
+    "method": "inverse-distance weighted spatial and temporal vector interpolation",
+    "spatialInterpolation": true,
+    "spatialPointCount": 4,
+    "spatialDistancePower": 2.0,
     "temporalResolutionMinutes": 5,
     "maximumTimeOffsetSeconds": 150,
     "estimated": true
@@ -98,13 +115,21 @@ op actuele vijfminutenpolling en zorgt dat route- en tijdreeksclients dezelfde
 operationele berekeningen hergebruiken. `calculationCache.status` is `miss` bij
 de eerste berekening en `hit` bij hergebruik, ook na een containerherstart.
 
+Ruimtelijk gebruikt de service maximaal vier dichtstbijzijnde atlaspunten
+binnen de coverageafstand. Het gewicht is `1 / afstand²`, genormaliseerd over
+de geselecteerde punten. De API interpoleert de oost- en noordcomponent en
+leidt daaruit richting en snelheid af. Een punt binnen één meter van een
+diamant gebruikt uitsluitend die diamant. `context.diamond` blijft voor
+compatibiliteit het dichtstbijzijnde punt; `context.interpolationPoints` is de
+volledige, gezaghebbende lijst voor de ruimtelijke berekening.
+
 ## Fouten
 
 Fouten hebben een stabiele structuur:
 
 ```json
 {
-  "apiVersion": "1.1.0",
+  "apiVersion": "1.2.0",
   "requestId": "...",
   "error": {
     "code": "not_found",

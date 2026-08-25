@@ -17,6 +17,8 @@ services:
       CURRENT_DB: /data/current.sqlite3
       CURRENT_DIAMONDS_FILE: /app/data/diamonds.txt
       CURRENT_MAX_POINT_DISTANCE_KM: "15"
+      CURRENT_SPATIAL_POINT_COUNT: "4"
+      CURRENT_SPATIAL_POWER: "2"
       CURRENT_RWS_CACHE_TTL_SECONDS: "2592000"
     volumes:
       - current-data:/data
