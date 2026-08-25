@@ -10,7 +10,7 @@ Alle succesvolle en foutresponses bevatten:
 
 ```json
 {
-  "apiVersion": "1.2.0",
+  "apiVersion": "1.3.0",
   "requestId": "d8ccf25b-..."
 }
 ```
@@ -34,7 +34,7 @@ Voorbeeldresponse:
 
 ```json
 {
-  "apiVersion": "1.2.0",
+  "apiVersion": "1.3.0",
   "requestId": "d8ccf25b-...",
   "source": "diamonds",
   "query": {
@@ -129,7 +129,7 @@ Fouten hebben een stabiele structuur:
 
 ```json
 {
-  "apiVersion": "1.2.0",
+  "apiVersion": "1.3.0",
   "requestId": "...",
   "error": {
     "code": "not_found",
@@ -147,3 +147,77 @@ Fouten hebben een stabiele structuur:
 Er is momenteel geen authenticatie en geen rate limiting. Clients moeten een
 redelijke timeout gebruiken en 503 tijdelijk behandelen met begrensde retry en
 backoff.
+
+## Batchinterface
+
+```http
+POST /v1/current/batch
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "source": "diamonds",
+  "queries": [
+    {"lat": 51.826, "lon": 3.6037, "time": "2026-09-12T12:29:00Z"},
+    {"lat": 51.8261, "lon": 3.6038, "time": "2026-09-12T12:31:00Z"},
+    {"lat": 0, "lon": 0, "time": "2026-09-12T12:30:00Z"}
+  ]
+}
+```
+
+Regels:
+
+- minimaal 1 en maximaal 100 items;
+- resultaten hebben dezelfde volgorde als `queries` en een zero-based `index`;
+- `lat` en `lon` worden voor de hele request gevalideerd;
+- een ongeldige tijd of inhoudelijke fout wordt per item geretourneerd;
+- de HTTP-response blijft 200 wanneer de batch syntactisch geldig is, ook als
+  één of meer items falen;
+- een structureel ongeldige body of meer dan 100 items geeft HTTP 422;
+- clients splitsen grotere tijdreeksen zelf in deterministische blokken van 100.
+
+Ingekort antwoord:
+
+```json
+{
+  "apiVersion": "1.3.0",
+  "requestId": "...",
+  "source": "diamonds",
+  "summary": {
+    "requested": 3,
+    "succeeded": 2,
+    "failed": 1,
+    "calculationPointHits": 4,
+    "calculationPointMisses": 4
+  },
+  "results": [
+    {
+      "index": 0,
+      "status": "ok",
+      "source": "diamonds",
+      "query": {"latitude": 51.826, "longitude": 3.6037, "time": "..."},
+      "current": {},
+      "context": {},
+      "quality": {},
+      "provenance": {}
+    },
+    {
+      "index": 2,
+      "status": "error",
+      "query": {"latitude": 0, "longitude": 0, "time": "..."},
+      "error": {
+        "httpStatus": 404,
+        "code": "not_found",
+        "message": "No current data within 15 km ..."
+      }
+    }
+  ]
+}
+```
+
+Een succesvol item heeft hetzelfde `source`, `query`, `current`, `context`,
+`quality` en `provenance`-contract als `GET /v1/current`. De summary telt
+cachehits en -misses op onderliggend diamantniveau, niet alleen per query.

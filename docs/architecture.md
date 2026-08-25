@@ -49,8 +49,16 @@ runtimeartefact, geen versiebron.
 
 - Eén FastAPI/Uvicorn-proces is voldoende; SQLite deelt cachedata over herstarts.
 - CORS staat open zodat meerdere browserapps op het LAN de API kunnen lezen.
-- Alleen `GET` is toegestaan via CORS.
+- Alleen `GET` en de batch-`POST` zijn toegestaan via CORS.
 - Er is nog geen authenticatie, rate limiting of applicatielogging.
 - Uvicorn-accesslogging is uitgeschakeld.
 - Docker bewaart alleen begrensde fout-/procesoutput: 3 bestanden van 5 MB.
 - `restart: unless-stopped` en `/ready` ondersteunen automatisch herstel.
+
+## Batchverwerking
+
+De batchroute gebruikt exact hetzelfde rekenpad als de enkelvoudige route en
+verwerkt maximaal 100 items in invoervolgorde. Daardoor blijven resultaten en
+provenance identiek en werkt de operationele cache ook tussen items binnen
+dezelfde request. Een mislukking wordt per item geïsoleerd. De limiet begrenst
+CPU-tijd, upstreamwerk en responsegrootte voor het enkele Uvicorn-proces.

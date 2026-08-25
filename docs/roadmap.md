@@ -7,6 +7,8 @@
 - Cacheomvang en tijdsbereik op `/health`, zonder request- of persoonslogging.
 - Ruimtelijke IDW²-vectorinterpolatie over maximaal vier geschikte atlaspunten,
   met volledige punt-, afstands-, gewichts- en bronprovenance.
+- Batchinterface met geordende partiële resultaten, gedeeld cachegebruik en een
+  harde limiet van 100 items.
 
 ## Eerstvolgend
 
@@ -19,8 +21,6 @@
 ## Daarna
 
 - Meer vaargebieden, diamanten en referentiehavens via hetzelfde importschema.
-- Batchendpoint voor FleetSense-routepunten en tijdreeksen om honderden losse
-  HTTP-calls te voorkomen en cachewarming in één request mogelijk te maken.
 - ETags en HTTP-cacheheaders voor bronnen- en coverage-endpoints.
 - Expliciete providerstatus en circuit breaker voor externe bronnen.
 - Versiebeleid en deprecatieheaders voor een toekomstige `/v2`.

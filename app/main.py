@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from app.diamonds import calculate_diamond_current, import_diamonds, moon_spring_neap_factor
 from app.calculation_cache import (
@@ -23,7 +24,7 @@ from app.calculation_cache import (
 from app.rws_tides import fetch_nearest_high_water, initialise_rws_cache
 
 
-API_VERSION = "1.2.0"
+API_VERSION = "1.3.0"
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = Path(os.getenv("CURRENT_DB", BASE_DIR / "current.sqlite3"))
 DIAMONDS_PATH = Path(os.getenv("CURRENT_DIAMONDS_FILE", BASE_DIR / "data" / "diamonds.txt"))
@@ -31,6 +32,18 @@ MAX_DISTANCE_KM = float(os.getenv("CURRENT_MAX_POINT_DISTANCE_KM", "15"))
 SPATIAL_POINT_COUNT = int(os.getenv("CURRENT_SPATIAL_POINT_COUNT", "4"))
 SPATIAL_POWER = float(os.getenv("CURRENT_SPATIAL_POWER", "2"))
 EXACT_POINT_KM = 0.001
+BATCH_MAX_ITEMS = 100
+
+
+class BatchQuery(BaseModel):
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+    time: str
+
+
+class BatchRequest(BaseModel):
+    source: Literal["diamonds"]
+    queries: list[BatchQuery] = Field(min_length=1, max_length=BATCH_MAX_ITEMS)
 
 
 def initialise_data() -> dict:
@@ -59,7 +72,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
@@ -267,6 +280,7 @@ def root(request: Request):
             "sources": "/v1/sources",
             "coverage": "/v1/coverage?source=diamonds",
             "example": "/v1/current?source=diamonds&lat=51.9&lon=3.8&time=2026-08-25T12:00:00Z",
+            "batch": "/v1/current/batch",
         },
     )
 
@@ -325,15 +339,7 @@ def coverage(request: Request, source: Literal["diamonds"] = Query(...)):
     )
 
 
-@app.get("/v1/current")
-def get_current(
-    request: Request,
-    source: Literal["diamonds"] = Query(...),
-    lat: float = Query(..., ge=-90, le=90),
-    lon: float = Query(..., ge=-180, le=180),
-    time: str = Query(...),
-):
-    at = parse_time(time)
+def calculate_current(source: str, lat: float, lon: float, at: datetime) -> dict:
     available_points = find_candidate_diamonds(lat, lon)
     if not available_points:
         raise HTTPException(503, "Current dataset is unavailable")
@@ -378,12 +384,11 @@ def get_current(
         for point, calculation, weight in zip(candidates, calculations, weights)
     ]
     primary_calculation = calculations[0]
-    return envelope(
-        request,
-        source=source,
-        query={"latitude": lat, "longitude": lon, "time": at.isoformat()},
-        current=current,
-        context={
+    return {
+        "source": source,
+        "query": {"latitude": lat, "longitude": lon, "time": at.isoformat()},
+        "current": current,
+        "context": {
             "area": nearest["area_code"],
             "referencePort": nearest["reference_port"],
             "calculationTime": bucket.isoformat(),
@@ -397,7 +402,7 @@ def get_current(
             },
             "interpolationPoints": point_contexts,
         },
-        quality={
+        "quality": {
             "method": "inverse-distance weighted spatial and temporal vector interpolation",
             "spatialInterpolation": len(candidates) > 1,
             "spatialPointCount": len(candidates),
@@ -406,7 +411,7 @@ def get_current(
             "maximumTimeOffsetSeconds": 150,
             "estimated": True,
         },
-        provenance={
+        "provenance": {
             "atlas": "tidal-diamonds",
             "highWater": primary_calculation["highWater"],
             "springNeap": "local astronomical calculation",
@@ -418,4 +423,60 @@ def get_current(
                 "pointMisses": sum(item["cacheStatus"] == "miss" for item in calculations),
             },
         },
+    }
+
+
+@app.get("/v1/current")
+def get_current(
+    request: Request,
+    source: Literal["diamonds"] = Query(...),
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    time: str = Query(...),
+):
+    return envelope(request, **calculate_current(source, lat, lon, parse_time(time)))
+
+
+@app.post("/v1/current/batch")
+def get_current_batch(request: Request, batch: BatchRequest):
+    results = []
+    succeeded = 0
+    failed = 0
+    point_hits = 0
+    point_misses = 0
+    for index, query in enumerate(batch.queries):
+        input_query = {"latitude": query.lat, "longitude": query.lon, "time": query.time}
+        try:
+            result = calculate_current(
+                batch.source, query.lat, query.lon, parse_time(query.time)
+            )
+        except HTTPException as exc:
+            failed += 1
+            results.append({
+                "index": index,
+                "status": "error",
+                "query": input_query,
+                "error": {
+                    "httpStatus": exc.status_code,
+                    "code": error_code(exc.status_code),
+                    "message": str(exc.detail),
+                },
+            })
+            continue
+        cache = result["provenance"]["calculationCache"]
+        point_hits += cache["pointHits"]
+        point_misses += cache["pointMisses"]
+        succeeded += 1
+        results.append({"index": index, "status": "ok", **result})
+    return envelope(
+        request,
+        source=batch.source,
+        summary={
+            "requested": len(batch.queries),
+            "succeeded": succeeded,
+            "failed": failed,
+            "calculationPointHits": point_hits,
+            "calculationPointMisses": point_misses,
+        },
+        results=results,
     )

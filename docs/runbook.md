@@ -62,6 +62,9 @@ curl -fsS http://localhost:8002/health
 curl -fsS 'http://localhost:8002/v1/sources'
 curl -fsS 'http://localhost:8002/v1/coverage?source=diamonds'
 curl -fsS 'http://localhost:8002/v1/current?source=diamonds&lat=51.9&lon=3.8&time=2026-08-25T12:00:00Z'
+curl -fsS -X POST http://localhost:8002/v1/current/batch \
+  -H 'Content-Type: application/json' \
+  -d '{"source":"diamonds","queries":[{"lat":51.826,"lon":3.6037,"time":"2026-09-12T12:30:00Z"}]}'
 ```
 
 Vanaf het LAN hoort `http://192.168.178.241:8002` dezelfde landing te tonen.
