@@ -1,0 +1,260 @@
+================================================================================
+LOCATIE 1: 51°59.15'N 3°53.76'E (Hoek van Holland referentie)
+Referentie: Hoek van Holland
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       223°      1,1 kn       0,7 kn
+-05h       239°      1,6 kn       0,8 kn
+-04h       221°      1,6 kn       0,8 kn
+-03h       236°      1,0 kn       0,3 kn
+-02h       237°      0,2 kn       0,5 kn
+-01h       042°      1,6 kn       1,4 kn
+HW (High Water)  037°  2,7 kn   1,7 kn
++01h       039°      2,1 kn       1,7 kn
++02h       033°      1,6 kn       1,5 kn
++03h       032°      1,4 kn       1,0 kn
++04h       014°      0,5 kn       0,4 kn
++05h       278°      0,6 kn       0,5 kn
++06h       233°      1,2 kn       0,4 kn
+
+================================================================================
+LOCATIE 2: 51°54.39'N 3°55.68'E (Hoek van Holland referentie)
+Referentie: Hoek van Holland
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       206°      0,8 kn       0,6 kn
+-05h       212°      0,7 kn       0,6 kn
+-04h       205°      0,6 kn       0,4 kn
+-03h       194°      0,4 kn       0,3 kn
+-02h       126°      0,2 kn       0,3 kn
+-01h       056°      0,9 kn       0,7 kn
+HW (High Water)  018°  1,0 kn   0,7 kn
++01h       023°      0,8 kn       0,6 kn
++02h       014°      0,6 kn       0,5 kn
++03h       356°      0,4 kn       0,3 kn
++04h       264°      0,2 kn       0,2 kn
++05h       207°      0,6 kn       0,4 kn
++06h       205°      0,8 kn       0,6 kn
+
+================================================================================
+LOCATIE 3: 51°52.45'N 3°53.99'E (Hoek van Holland referentie)
+Referentie: Hoek van Holland
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       218°      1,0 kn       0,7 kn
+-05h       231°      1,0 kn       0,6 kn
+-04h       223°      0,7 kn       0,4 kn
+-03h       220°      0,5 kn       0,2 kn
+-02h       116°      0,4 kn       0,6 kn
+-01h       067°      1,5 kn       0,8 kn
+HW (High Water)  025°  1,1 kn   1,0 kn
++01h       038°      0,9 kn       0,8 kn
++02h       033°      0,7 kn       0,5 kn
++03h       007°      0,4 kn       0,3 kn
++04h       289°      0,4 kn       0,2 kn
++05h       231°      0,7 kn       0,4 kn
++06h       225°      1,1 kn       0,6 kn
+
+================================================================================
+LOCATIE 4: 51°49.56'N 3°47.09'E (Vlissingen referentie)
+Referentie: Vlissingen
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       235°      0,9 kn       0,8 kn
+-05h       240°      1,1 kn       0,7 kn
+-04h       240°      1,0 kn       0,6 kn
+-03h       236°      0,7 kn       0,4 kn
+-02h       222°      0,3 kn       0,1 kn
+-01h       089°      0,7 kn       0,8 kn
+HW (High Water)  055°  1,5 kn   0,9 kn
++01h       044°      1,0 kn       0,7 kn
++02h       043°      0,8 kn       0,5 kn
++03h       028°      0,5 kn       0,3 kn
++04h       301°      0,3 kn       0,2 kn
++05h       249°      0,7 kn       0,6 kn
++06h       236°      1,0 kn       0,7 kn
+
+================================================================================
+LOCATIE 5: 51°48.70'N 3°50.36'E (Vlissingen referentie)
+Referentie: Vlissingen
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       181°      1,0 kn       0,8 kn
+-05h       182°      1,1 kn       0,7 kn
+-04h       185°      0,8 kn       0,6 kn
+-03h       182°      0,8 kn       0,4 kn
+-02h       177°      0,4 kn       0,2 kn
+-01h       076°      0,2 kn       0,8 kn
+HW (High Water)  009°  1,5 kn   1,1 kn
++01h       003°      1,0 kn       0,9 kn
++02h       006°      0,9 kn       0,7 kn
++03h       000°      0,9 kn       0,5 kn
++04h       347°      0,3 kn       0,2 kn
++05h       236°      0,2 kn       0,3 kn
++06h       185°      1,0 kn       0,6 kn
+
+================================================================================
+LOCATIE 6: 51°57.93'N 3°55.97'E (Hoek van Holland referentie)
+Referentie: Hoek van Holland
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       202°      2,1 kn       1,5 kn
+-05h       211°      2,1 kn       2,1 kn
+-04h       212°      1,9 kn       1,5 kn
+-03h       217°      1,3 kn       0,3 kn
+-02h       230°      0,2 kn       0,5 kn
+-01h       026°      1,6 kn       1,4 kn
+HW (High Water)  019°  2,8 kn   1,9 kn
++01h       021°      2,1 kn       1,5 kn
++02h       028°      1,6 kn       1,1 kn
++03h       010°      1,3 kn       1,0 kn
++04h       340°      0,8 kn       0,3 kn
++05h       204°      0,9 kn       0,2 kn
++06h       208°      2,5 kn       0,7 kn
+
+================================================================================
+LOCATIE 7: 51°49.50'N 3°38.33'E (Vlissingen referentie)
+Referentie: Vlissingen
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       222°      1,2 kn       1,0 kn
+-05h       224°      1,7 kn       1,2 kn
+-04h       224°      1,7 kn       1,1 kn
+-03h       221°      1,4 kn       0,8 kn
+-02h       212°      0,8 kn       0,3 kn
+-01h       088°      0,6 kn       0,7 kn
+HW (High Water)  050°  1,8 kn   1,1 kn
++01h       045°      1,8 kn       1,2 kn
++02h       043°      1,7 kn       1,1 kn
++03h       039°      1,3 kn       0,7 kn
++04h       028°      0,7 kn       0,3 kn
++05h       269°      0,2 kn       0,2 kn
++06h       224°      1,1 kn       0,7 kn
+
+================================================================================
+LOCATIE 8: 51°49.62'N 3°34.11'E (Vlissingen referentie)
+Referentie: Vlissingen
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       215°      1,1 kn       1,0 kn
+-05h       217°      1,6 kn       1,1 kn
+-04h       217°      1,7 kn       1,1 kn
+-03h       212°      1,4 kn       0,8 kn
+-02h       202°      0,9 kn       0,3 kn
+-01h       099°      0,7 kn       0,6 kn
+HW (High Water)  047°  1,7 kn   1,1 kn
++01h       040°      1,8 kn       1,2 kn
++02h       036°      1,7 kn       1,1 kn
++03h       027°      1,4 kn       0,8 kn
++04h       013°      0,9 kn       0,5 kn
++05h       309°      0,3 kn       0,2 kn
++06h       218°      1,0 kn       0,7 kn
+
+================================================================================
+LOCATIE 9: 51°54.70'N 3°25.82'E (Hoek van Holland referentie)
+Referentie: Hoek van Holland
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       217°      1,5 kn       1,2 kn
+-05h       216°      1,7 kn       1,2 kn
+-04h       212°      1,5 kn       1,0 kn
+-03h       203°      1,0 kn       0,5 kn
+-02h       098°      0,5 kn       0,6 kn
+-01h       046°      1,6 kn       1,1 kn
+HW (High Water)  036°  1,7 kn   1,2 kn
++01h       031°      1,6 kn       1,1 kn
++02h       022°      1,2 kn       0,9 kn
++03h       007°      0,8 kn       0,5 kn
++04h       321°      0,3 kn       0,3 kn
++05h       218°      0,8 kn       0,6 kn
++06h       216°      1,5 kn       1,0 kn
+
+================================================================================
+LOCATIE 10: 51°49.58'N 3°29.71'E (Vlissingen referentie)
+Referentie: Vlissingen
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       215°      1,0 kn       1,0 kn
+-05h       215°      1,7 kn       1,2 kn
+-04h       212°      1,9 kn       1,2 kn
+-03h       207°      1,6 kn       0,9 kn
+-02h       196°      1,1 kn       0,5 kn
+-01h       105°      0,8 kn       0,6 kn
+HW (High Water)  045°  1,6 kn   1,0 kn
++01h       034°      1,8 kn       1,2 kn
++02h       030°      1,8 kn       1,2 kn
++03h       022°      1,6 kn       1,0 kn
++04h       010°      1,1 kn       0,6 kn
++05h       328°      0,4 kn       0,2 kn
++06h       218°      0,9 kn       0,6 kn
+
+================================================================================
+LOCATIE 11: 51°48.03'N 3°22.57'E (Vlissingen referentie)
+Referentie: Vlissingen
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       217°      1,0 kn       1,0 kn
+-05h       216°      1,7 kn       1,2 kn
+-04h       215°      1,9 kn       1,2 kn
+-03h       210°      1,7 kn       0,9 kn
+-02h       198°      1,1 kn       0,4 kn
+-01h       092°      0,8 kn       0,6 kn
+HW (High Water)  043°  1,7 kn   1,1 kn
++01h       036°      2,0 kn       1,2 kn
++02h       031°      2,0 kn       1,2 kn
++03h       022°      1,6 kn       0,9 kn
++04h       011°      1,0 kn       0,6 kn
++05h       331°      0,4 kn       0,3 kn
++06h       221°      0,8 kn       0,6 kn
+
+================================================================================
+LOCATIE 12: 52°04.12'N 3°53.73'E (Hoek van Holland referentie)
+Referentie: Hoek van Holland
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       217°      1,0 kn       1,0 kn
+-05h       229°      1,9 kn       1,4 kn
+-04h       223°      1,4 kn       0,9 kn
+-03h       221°      0,9 kn       0,3 kn
+-02h       175°      0,1 kn       0,5 kn
+-01h       036°      1,7 kn       1,1 kn
+HW (High Water)  035°  2,9 kn   2,0 kn
++01h       034°      2,3 kn       2,2 kn
++02h       040°      2,5 kn       1,6 kn
++03h       040°      1,5 kn       1,1 kn
++04h       043°      0,8 kn       0,5 kn
++05h       204°      0,5 kn       0,1 kn
++06h       216°      1,3 kn       0,7 kn
+
+================================================================================
+LOCATIE 13: (Hoek van Holland referentie)
+Referentie: Hoek van Holland
+================================================================================
+Tijd       Richting  Spring Rate  Neap Rate
+-06h       208°      1,4 kn       1,1 kn
+-05h       215°      1,5 kn       1,1 kn
+-04h       215°      1,3 kn       0,9 kn
+-03h       213°      0,9 kn       0,5 kn
+-02h       152°      0,1 kn       0,2 kn
+-01h       038°      1,2 kn       0,9 kn
+HW (High Water)  032°  1,7 kn   1,1 kn
++01h       030°      1,6 kn       1,1 kn
++02h       023°      1,3 kn       0,9 kn
++03h       014°      0,8 kn       0,6 kn
++04h       355°      0,2 kn       0,1 kn
++05h       194°      0,8 kn       0,5 kn
++06h       207°      1,4 kn       1,0 kn
+
+================================================================================
+NOTITIES:
+================================================================================
+- Alle tijden uitgedrukt als uren relatief tot High Water (HW)
+- Richting: in graden (0° = Noord, 90° = Oost, 180° = Zuid, 270° = West)
+- Spring Rate: maximale stroomsnelheid bij springtij
+- Neap Rate: maximale stroomsnelheid bij doodtij
+- Alle stroomsnelheden in knopen (kn)
+- Zone: MET+1 (Midden-Europese Tijd)
+- Datum: 25 augustus 2026
+- Voorspellingen gebaseerd op: Hoek van Holland en Vlissingen referentiestations
+
+================================================================================

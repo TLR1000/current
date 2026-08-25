@@ -1,0 +1,31 @@
+x-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: "5m"
+    max-file: "3"
+
+services:
+  api:
+    build: .
+    image: current-api
+    container_name: current-api
+    restart: unless-stopped
+    logging: *bounded-logging
+    ports:
+      - "8002:8000"
+    environment:
+      CURRENT_DB: /data/current.sqlite3
+      CURRENT_DIAMONDS_FILE: /app/data/diamonds.txt
+      CURRENT_MAX_POINT_DISTANCE_KM: "15"
+      CURRENT_RWS_CACHE_TTL_SECONDS: "21600"
+    volumes:
+      - current-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  current-data:
