@@ -18,6 +18,10 @@ TrackSense / SailSense / FleetSense / andere clients
 De publieke API is providerbewust via de verplichte `source`-parameter, maar
 clients hoeven de opslag of rekenimplementatie niet te kennen. De huidige
 provider selecteert het dichtstbijzijnde geldige atlaspunt binnen 15 km.
+De rechthoek in `/v1/coverage` beschrijft uitsluitend de puntligging. Effectieve
+dekking is de unie van de 15-km-zones rond punten en kan daarom buiten die
+rechthoek doorlopen. `/v1/coverage/check` past exact dezelfde selectieregel toe
+als de rekenroute.
 
 Requests worden naar het dichtstbijzijnde vijfminutenvak genormaliseerd. De
 operationele cachesleutel bestaat uit provider, atlasversie, diamant en tijdvak;
@@ -40,6 +44,10 @@ mag een ouder gevalideerd record als expliciet `stale` worden gebruikt. Daarna
 worden snelheid tussen dood- en springtij en stroomvectoren tussen de omliggende
 uurvakken geïnterpoleerd. Vectorinterpolatie voorkomt fouten rond 0/360 graden.
 Het eindresultaat wordt persistent in `current_calculations` opgeslagen.
+
+De tijdsbron is astronomisch en heeft geen modelrun of forecast-horizon. Het
+contract retourneert deze velden expliciet als niet van toepassing en houdt
+`validAt` (rekenvak) gescheiden van `generatedAt` (cachemoment).
 
 De brondata staat als tekst in Git. Bij processtart wordt zij idempotent naar
 SQLite geïmporteerd. Het SQLite-bestand staat in een Docker-volume en is een

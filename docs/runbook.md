@@ -61,6 +61,7 @@ curl -fsS http://localhost:8002/ready
 curl -fsS http://localhost:8002/health
 curl -fsS 'http://localhost:8002/v1/sources'
 curl -fsS 'http://localhost:8002/v1/coverage?source=diamonds'
+curl -fsS 'http://localhost:8002/v1/coverage/check?source=diamonds&lat=51.83284&lon=4.0382'
 curl -fsS 'http://localhost:8002/v1/current?source=diamonds&lat=51.9&lon=3.8&time=2026-08-25T12:00:00Z'
 curl -fsS -X POST http://localhost:8002/v1/current/batch \
   -H 'Content-Type: application/json' \

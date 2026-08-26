@@ -21,6 +21,7 @@ Handige routes:
 - `GET /ready` — dataset gereed voor verkeer;
 - `GET /v1/sources` — beschikbare databronnen;
 - `GET /v1/coverage?source=diamonds` — dekking en begrenzing;
+- `GET /v1/coverage/check?source=diamonds&lat=...&lon=...` — effectieve afstandsdekking;
 - `POST /v1/current/batch` — maximaal 100 geordende positie/tijd-queries;
 - `GET /docs` — interactieve OpenAPI-documentatie.
 
@@ -96,3 +97,15 @@ request:
 De resultaten behouden de invoervolgorde. Een fout voor één item wordt in dat
 item geretourneerd en breekt de overige berekeningen niet af. Grotere reeksen
 moeten door de client in stabiele blokken van 100 worden verstuurd.
+
+## Coverage en tijdssemantiek
+
+De bounds van `/v1/coverage` zijn de uiterste atlaspuntcoördinaten, geen harde
+API-grens. Een locatie is gedekt wanneer ten minste één diamant binnen 15 km
+ligt. Stellendam (`51.83284, 4.03820`) ligt buiten de atlaspunt-bounds maar is
+wel gedekt door drie punten. Gebruik `/v1/coverage/check` voor een eenduidige
+voorafcontrole.
+
+Diamonds is een astronomische getijatlas, geen forecastmodel. Responses maken
+dit expliciet met `isForecastModel=false`; `modelRunAt`, forecast-horizon en
+vaste `validFrom`/`validUntil` zijn daarom `null`, niet ontbrekend.

@@ -24,7 +24,7 @@ from app.calculation_cache import (
 from app.rws_tides import fetch_nearest_high_water, initialise_rws_cache
 
 
-API_VERSION = "1.3.0"
+API_VERSION = "1.4.0"
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = Path(os.getenv("CURRENT_DB", BASE_DIR / "current.sqlite3"))
 DIAMONDS_PATH = Path(os.getenv("CURRENT_DIAMONDS_FILE", BASE_DIR / "data" / "diamonds.txt"))
@@ -89,6 +89,20 @@ def error_code(status: int) -> str:
     return {404: "not_found", 422: "invalid_request", 503: "upstream_unavailable"}.get(
         status, "request_failed"
     )
+
+
+def temporal_semantics(*, valid_at: str | None = None, generated_at: str | None = None) -> dict:
+    return {
+        "predictionType": "astronomical_tidal_atlas",
+        "isForecastModel": False,
+        "modelRunAt": None,
+        "forecastHorizonHours": None,
+        "validFrom": None,
+        "validUntil": None,
+        "validAt": valid_at,
+        "generatedAt": generated_at,
+        "timeSupport": "subject_to_reference_high_water_availability",
+    }
 
 
 @app.exception_handler(HTTPException)
@@ -279,6 +293,7 @@ def root(request: Request):
             "health": "/health",
             "sources": "/v1/sources",
             "coverage": "/v1/coverage?source=diamonds",
+            "coverageCheck": "/v1/coverage/check?source=diamonds&lat=51.83284&lon=4.0382",
             "example": "/v1/current?source=diamonds&lat=51.9&lon=3.8&time=2026-08-25T12:00:00Z",
             "batch": "/v1/current/batch",
         },
@@ -311,6 +326,7 @@ def sources(request: Request):
             "name": "Tidal diamonds",
             "area": "voordelta",
             "status": "available" if database_ready() else "unavailable",
+            "temporal": temporal_semantics(),
         }],
     )
 
@@ -335,7 +351,45 @@ def coverage(request: Request, source: Literal["diamonds"] = Query(...)):
             "north": row["max_lat"], "east": row["max_lon"],
         },
         maximumPointDistanceKm=MAX_DISTANCE_KM,
+        coverageRule={
+            "type": "distance_to_atlas_point",
+            "pointBoundsAreHardBoundary": False,
+            "description": (
+                "The bounds describe atlas-point extents. A query outside these bounds "
+                "is covered when at least one atlas point is within maximumPointDistanceKm."
+            ),
+        },
         spatialInterpolation={"maximumPoints": SPATIAL_POINT_COUNT, "distancePower": SPATIAL_POWER},
+    )
+
+
+@app.get("/v1/coverage/check")
+def coverage_check(
+    request: Request,
+    source: Literal["diamonds"] = Query(...),
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+):
+    points = find_candidate_diamonds(lat, lon)
+    if not points:
+        raise HTTPException(503, "Current dataset is unavailable")
+    eligible = [point for point in points if point["distance_km_raw"] <= MAX_DISTANCE_KM]
+    nearest = points[0]
+    return envelope(
+        request,
+        source=source,
+        query={"latitude": lat, "longitude": lon},
+        covered=bool(eligible),
+        rule="distance_to_atlas_point",
+        maximumPointDistanceKm=MAX_DISTANCE_KM,
+        nearestDiamond={
+            "number": nearest["diamond_number"],
+            "latitude": nearest["lat"],
+            "longitude": nearest["lon"],
+            "distanceKm": nearest["distance_km"],
+        },
+        eligiblePointCount=len(eligible),
+        interpolationPointCount=min(len(eligible), SPATIAL_POINT_COUNT),
     )
 
 
@@ -415,6 +469,10 @@ def calculate_current(source: str, lat: float, lon: float, at: datetime) -> dict
             "atlas": "tidal-diamonds",
             "highWater": primary_calculation["highWater"],
             "springNeap": "local astronomical calculation",
+            "temporal": temporal_semantics(
+                valid_at=bucket.isoformat(),
+                generated_at=primary_calculation["calculatedAt"],
+            ),
             "calculationCache": {
                 "status": "hit" if all(item["cacheStatus"] == "hit" for item in calculations) else "miss",
                 "calculatedAt": primary_calculation["calculatedAt"],

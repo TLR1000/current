@@ -40,7 +40,11 @@ def test_health_ready_sources_and_coverage():
         assert client.get("/ready").json()["status"] == "ready"
         sources = client.get("/v1/sources").json()["sources"]
         coverage = client.get("/v1/coverage", params={"source": "diamonds"}).json()
-    assert sources == [{"id": "diamonds", "name": "Tidal diamonds", "area": "voordelta", "status": "available"}]
+    assert len(sources) == 1
+    assert {key: sources[0][key] for key in ("id", "name", "area", "status")} == {
+        "id": "diamonds", "name": "Tidal diamonds",
+        "area": "voordelta", "status": "available",
+    }
     assert coverage["pointCount"] == 12
     assert coverage["bounds"]["north"] > coverage["bounds"]["south"]
 
@@ -63,7 +67,7 @@ def test_current_response_contract(monkeypatch):
     assert payload["context"]["hoursFromHighWater"] == 0.5
     assert payload["quality"]["estimated"] is True
     assert payload["provenance"]["highWater"]["cache"] == "hit"
-    assert payload["apiVersion"] == "1.3.0"
+    assert payload["apiVersion"] == "1.4.0"
     assert payload["requestId"]
     assert payload["context"]["calculationTime"] == "2026-08-25T12:30:00+00:00"
     assert payload["quality"]["temporalResolutionMinutes"] == 5
@@ -71,6 +75,12 @@ def test_current_response_contract(monkeypatch):
     assert payload["quality"]["spatialInterpolation"] is False
     assert payload["quality"]["spatialPointCount"] == 1
     assert payload["context"]["interpolationPoints"][0]["weight"] == 1.0
+    temporal = payload["provenance"]["temporal"]
+    assert temporal["predictionType"] == "astronomical_tidal_atlas"
+    assert temporal["isForecastModel"] is False
+    assert temporal["modelRunAt"] is None
+    assert temporal["forecastHorizonHours"] is None
+    assert temporal["validAt"] == "2026-08-25T12:30:00+00:00"
 
 
 def test_source_is_explicit_and_errors_are_stable():
@@ -224,3 +234,33 @@ def test_cors_allows_batch_post():
         })
     assert response.status_code == 200
     assert "POST" in response.headers["access-control-allow-methods"]
+
+
+def test_sources_make_non_forecast_time_semantics_explicit():
+    with TestClient(main.app) as client:
+        source = client.get("/v1/sources").json()["sources"][0]
+    assert source["temporal"]["isForecastModel"] is False
+    assert source["temporal"]["modelRunAt"] is None
+    assert source["temporal"]["forecastHorizonHours"] is None
+
+
+def test_coverage_bounds_are_not_a_hard_boundary():
+    with TestClient(main.app) as client:
+        coverage = client.get("/v1/coverage", params={"source": "diamonds"}).json()
+        stellendam = client.get("/v1/coverage/check", params={
+            "source": "diamonds", "lat": 51.83284, "lon": 4.0382,
+        }).json()
+    assert coverage["bounds"]["east"] < 4.0382
+    assert coverage["coverageRule"]["pointBoundsAreHardBoundary"] is False
+    assert stellendam["covered"] is True
+    assert stellendam["nearestDiamond"]["distanceKm"] < 15
+    assert stellendam["eligiblePointCount"] == 3
+
+
+def test_coverage_check_reports_uncovered_position():
+    with TestClient(main.app) as client:
+        payload = client.get("/v1/coverage/check", params={
+            "source": "diamonds", "lat": 0, "lon": 0,
+        }).json()
+    assert payload["covered"] is False
+    assert payload["eligiblePointCount"] == 0

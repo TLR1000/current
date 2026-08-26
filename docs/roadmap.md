@@ -9,6 +9,8 @@
   met volledige punt-, afstands-, gewichts- en bronprovenance.
 - Batchinterface met geordende partiële resultaten, gedeeld cachegebruik en een
   harde limiet van 100 items.
+- Expliciet afstandscoveragecontract met puntcheck en astronomische tijdmetadata
+  zonder fictieve modelrun of forecast-horizon.
 
 ## Eerstvolgend
 

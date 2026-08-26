@@ -10,7 +10,7 @@ Alle succesvolle en foutresponses bevatten:
 
 ```json
 {
-  "apiVersion": "1.3.0",
+  "apiVersion": "1.4.0",
   "requestId": "d8ccf25b-..."
 }
 ```
@@ -34,7 +34,7 @@ Voorbeeldresponse:
 
 ```json
 {
-  "apiVersion": "1.3.0",
+  "apiVersion": "1.4.0",
   "requestId": "d8ccf25b-...",
   "source": "diamonds",
   "query": {
@@ -96,6 +96,17 @@ Voorbeeldresponse:
       "cache": "hit"
     },
     "springNeap": "local astronomical calculation",
+    "temporal": {
+      "predictionType": "astronomical_tidal_atlas",
+      "isForecastModel": false,
+      "modelRunAt": null,
+      "forecastHorizonHours": null,
+      "validFrom": null,
+      "validUntil": null,
+      "validAt": "2026-08-25T12:00:00+00:00",
+      "generatedAt": "2026-08-20T08:13:22+00:00",
+      "timeSupport": "subject_to_reference_high_water_availability"
+    },
     "calculationCache": {
       "status": "hit",
       "calculatedAt": "2026-08-20T08:13:22+00:00",
@@ -123,13 +134,55 @@ diamant gebruikt uitsluitend die diamant. `context.diamond` blijft voor
 compatibiliteit het dichtstbijzijnde punt; `context.interpolationPoints` is de
 volledige, gezaghebbende lijst voor de ruimtelijke berekening.
 
+## Coverage
+
+`GET /v1/coverage?source=diamonds` retourneert de uiterste coördinaten van de
+atlaspunten. Die rechthoek is nadrukkelijk geen harde requestgrens. De
+operationele regel is afstand tot een atlaspunt, standaard maximaal 15 km.
+
+Controleer een locatie eenduidig met:
+
+```http
+GET /v1/coverage/check?source=diamonds&lat=51.83284&lon=4.0382
+```
+
+Voor Stellendam retourneert dit onder andere:
+
+```json
+{
+  "covered": true,
+  "rule": "distance_to_atlas_point",
+  "maximumPointDistanceKm": 15.0,
+  "nearestDiamond": {"number": 3, "distanceKm": 10.556},
+  "eligiblePointCount": 3,
+  "interpolationPointCount": 3
+}
+```
+
+## Tijdssemantiek
+
+De bron is een astronomische getijatlas gekoppeld aan officiële HW-extremen,
+geen modelrun of beperkte weersforecast. Daarom bevat `provenance.temporal`
+expliciet:
+
+- `isForecastModel: false`;
+- `modelRunAt: null`;
+- `forecastHorizonHours: null`;
+- `validFrom` en `validUntil`: `null`;
+- `validAt`: het gebruikte vijfminutenvak;
+- `generatedAt`: wanneer de operationele berekening is gecachet;
+- `timeSupport`: afhankelijk van beschikbaarheid van referentie-HW.
+
+Clients mogen `generatedAt` niet als modelrun interpreteren. `null` betekent
+hier “niet van toepassing”, niet “metadata ontbreekt”.
+
 ## Fouten
 
 Fouten hebben een stabiele structuur:
 
 ```json
 {
-  "apiVersion": "1.3.0",
+  "apiVersion": "1.4.0",
   "requestId": "...",
   "error": {
     "code": "not_found",
@@ -183,7 +236,7 @@ Ingekort antwoord:
 
 ```json
 {
-  "apiVersion": "1.3.0",
+  "apiVersion": "1.4.0",
   "requestId": "...",
   "source": "diamonds",
   "summary": {
